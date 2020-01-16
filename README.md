@@ -19,14 +19,14 @@ Usage:
 docker run -d \
     --name=nomad-job-updater \
     kevinkamps/nomad-job-updater:latest \
-      -help
+      nomad_job_updater -help
 ```
 ### Running as Docker container: Updating / adding a job to your Nomad cluster
 ```bash
 docker run -d \
     --name=nomad-job-updater \
     kevinkamps/nomad-job-updater:latest \
-      -nomad-url=https://nomad.domain.com -job-hcl-file=nomad-job.hcl
+      nomad_job_updater -nomad-url=https://nomad.domain.com -job-hcl-file=nomad-job.hcl
 ```
 ## License
 
