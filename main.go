@@ -10,12 +10,58 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var version string
 
 type Job struct {
 	ID *string
+}
+
+func main() {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	jobHclFile := flag.String("job-hcl-file", `nomad-job.hcl`, "Path to the job hch file")
+	nomadUrl := flag.String("nomad-url", `http://127.0.0.1:4646`, "Parse url")
+	showVersion := flag.Bool("version", false, "Prints the version of the application and exits")
+	flag.Parse()
+	if *showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+
+	// parse hcl
+	hcl, err := ioutil.ReadFile(*jobHclFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	message := map[string]interface{}{
+		"JobHCL":       replaceVars(hcl),
+		"Canonicalize": true,
+	}
+	bytesRepresentation, err := json.Marshal(message)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	response, err := http.Post(*nomadUrl+"/v1/jobs/parse", "application/json", bytes.NewBuffer(bytesRepresentation))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer response.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	updateJob(*nomadUrl, contents)
 }
 
 func updateJob(nomadUrl string, contents []byte) {
@@ -45,46 +91,12 @@ func updateJob(nomadUrl string, contents []byte) {
 	}
 }
 
-func main() {
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-	jobHclFile := flag.String("job-hcl-file", `nomad-job.hcl`, "Path to the job hch file")
-	nomadUrl := flag.String("nomad-url", `http://127.0.0.1:4646`, "Parse url")
-	showVersion := flag.Bool("version", false, "Prints the version of the application and exits")
-	flag.Parse()
-	if *showVersion {
-		fmt.Println(version)
-		os.Exit(0)
+func replaceVars(content []byte) string {
+	contentString := string(content)
+	for _, e := range os.Environ() {
+		pair := strings.SplitN(e, "=", 2)
+		contentString = strings.Replace(contentString, "$"+pair[0], pair[1], -1)
 	}
 
-	// parse hcl
-	hcl, err := ioutil.ReadFile(*jobHclFile)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	message := map[string]interface{}{
-		"JobHCL":       string(hcl),
-		"Canonicalize": true,
-	}
-	bytesRepresentation, err := json.Marshal(message)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	response, err := http.Post(*nomadUrl+"/v1/jobs/parse", "application/json", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer response.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	contents, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	updateJob(*nomadUrl, contents)
+	return contentString
 }
