@@ -28,6 +28,15 @@ docker run -d \
     kevinkamps/nomad-job-updater:latest \
       nomad_job_updater -nomad-url=https://nomad.domain.com -job-hcl-file=nomad-job.hcl
 ```
+
+## HCL Templates
+Details about this specification can be found at: https://github.com/hashicorp/hcl
+
+### Variables
+We have added support for variables in the template. We only support replacement of environment variables. You can use `$` followed by a 
+variable name `$variable_name` that would be replaced the environment variable value of `variable_name`. We do not support the convention 
+of `${var}` which is widely used in the industry because that convention is used by nomad (see: https://www.nomadproject.io/docs/runtime/interpolation.html#interpreted_node_vars)
+
 ## License
 
 [GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
