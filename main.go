@@ -50,10 +50,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer response.Body.Close()
-	if err != nil {
-		log.Fatal(err)
+	if response.StatusCode == 500 {
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Fatal("Error parsing hcl file: " + string(body))
 	}
 
 	contents, err := ioutil.ReadAll(response.Body)
@@ -84,6 +87,14 @@ func updateJob(nomadUrl string, hclContent []byte) {
 	response, err := http.Post(nomadUrl+"/v1/job/"+*job.ID, "application/json", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		log.Fatal(err)
+	}
+	if response.StatusCode == 500 {
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Fatal("Error updating job: " + string(body))
 	}
 
 	if response.StatusCode == 200 {
