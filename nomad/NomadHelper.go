@@ -3,6 +3,7 @@ package nomad
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -25,8 +26,30 @@ func NewNomadHelper(configuration *Configuration) *NomadHelper {
 	nomadHelper.configuration = configuration
 
 	nomadHelper.httpClient = &http.Client{}
+	tlsConfig := &tls.Config{}
+	tlsConfig.InsecureSkipVerify = *configuration.AllowInsecureCertificates
+
+	if *configuration.TlsAuthEnabled {
+		// Load client cert
+		cert, err := tls.LoadX509KeyPair(*configuration.TlsCertFile, *configuration.TlsKeyFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Load CA cert
+		caCert, err := ioutil.ReadFile(*configuration.TlsCaFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		tlsConfig.Certificates = []tls.Certificate{cert}
+		tlsConfig.RootCAs = caCertPool
+		tlsConfig.BuildNameToCertificate()
+	}
 	nomadHelper.httpClient.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *configuration.AllowInsecureCertificates},
+		TLSClientConfig: tlsConfig,
 	}
 
 	return &nomadHelper

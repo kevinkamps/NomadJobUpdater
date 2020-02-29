@@ -10,11 +10,19 @@ Usage:
   -nomad-allow-insecure-certificates
         Allows insecure certificates / self signed certificates
   -nomad-basic-auth-enabled
-        Add a basic authentication header to all nomad requests
+        Add a basic authentication header to all nomad requests (default false)
   -nomad-basic-auth-password string
         Basic authentication password (default "password")
   -nomad-basic-auth-username string
         Basic authentication username (default "user")
+  -nomad-tls-ca string
+        A PEM encoded CA certificate file.
+  -nomad-tls-cert string
+        A PEM encoded certificate file.
+  -nomad-tls-certificate-authorization-enabled
+        Enables tls certificate authorization. Options --nomad-tls-cert, --nomad-tls-key and --nomad-tls-ca are required when enabling this option. (default false)
+  -nomad-tls-key string
+        A PEM encoded private key file.
   -nomad-url string
         Nomad url (default "http://127.0.0.1:4646")
   -version
