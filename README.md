@@ -7,8 +7,16 @@ some automatic deployment through a CI system like Jenkins / Gitlab / TeamCity /
 Usage:
   -job-hcl-file string
         Path to the job hch file (default "nomad-job.hcl")
+  -nomad-allow-insecure-certificates
+        Allows insecure certificates / self signed certificates
+  -nomad-basic-auth-enabled
+        Add a basic authentication header to all nomad requests
+  -nomad-basic-auth-password string
+        Basic authentication password (default "password")
+  -nomad-basic-auth-username string
+        Basic authentication username (default "user")
   -nomad-url string
-        Parse url (default "http://127.0.0.1:4646")
+        Nomad url (default "http://127.0.0.1:4646")
   -version
         Prints the version of the application and exits
 ```

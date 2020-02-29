@@ -2,34 +2,37 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"kevinkamps.nl/gitlab-ci/nomad/configuration"
+	nomad "kevinkamps.nl/gitlab-ci/nomad/nomad"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 )
 
 var version string
 
-type Job struct {
-	ID *string
-}
-
 func main() {
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	var configurations []configuration.Configuration
+
+	nomadConfiguration := nomad.NewNomadConfiguration()
+	configurations = append(configurations, nomadConfiguration)
 
 	jobHclFile := flag.String("job-hcl-file", `nomad-job.hcl`, "Path to the job hch file")
-	nomadUrl := flag.String("nomad-url", `http://127.0.0.1:4646`, "Parse url")
 	showVersion := flag.Bool("version", false, "Prints the version of the application and exits")
 	flag.Parse()
+	for _, configuration := range configurations {
+		configuration.Parse()
+	}
 	if *showVersion {
 		fmt.Println(version)
 		os.Exit(0)
 	}
+
+	nomadHelper := nomad.NewNomadHelper(nomadConfiguration)
 
 	// parse hcl
 	hcl, err := ioutil.ReadFile(*jobHclFile)
@@ -46,63 +49,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	response, err := http.Post(*nomadUrl+"/v1/jobs/parse", "application/json", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if response.StatusCode == 500 {
-		defer response.Body.Close()
-		body, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Fatal("Error parsing hcl file: " + string(body))
-	}
-
-	contents, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	updateJob(*nomadUrl, contents)
-}
-
-//Updates a job in nomad
-//Parameter nomadUrl	The url of nomad which to target
-//Parameter hclContent	The content of a hcl formatted file
-func updateJob(nomadUrl string, hclContent []byte) {
-	var jobFull map[string]interface{}
-	json.Unmarshal(hclContent, &jobFull)
-
-	job := new(Job)
-	json.Unmarshal(hclContent, &job)
-
-	message := map[string]interface{}{
-		"Job": jobFull,
-	}
-	bytesRepresentation, err := json.Marshal(message)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	response, err := http.Post(nomadUrl+"/v1/job/"+*job.ID, "application/json", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if response.StatusCode == 500 {
-		defer response.Body.Close()
-		body, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Fatal("Error updating job: " + string(body))
-	}
-
-	if response.StatusCode == 200 {
-		log.Println(message)
-		os.Exit(0)
-	} else {
-		os.Exit(1)
-	}
+	jsonContent := nomadHelper.ParseHclJob(bytes.NewBuffer(bytesRepresentation))
+	nomadHelper.UpdateJob(jsonContent)
 }
 
 //Replaces variables in the content. Currently it only replaces environment variables.
