@@ -90,7 +90,7 @@ func (this *NomadHelper) UpdateJob(jsonContent []byte) {
 func (this *NomadHelper) doPostRequest(url string, bodyReader io.Reader) *http.Response {
 	req, err := http.NewRequest("POST", url, bodyReader)
 	if *this.configuration.BasicAuthEnabled {
-		req.SetBasicAuth(*this.configuration.BasicAuthPassword, *this.configuration.BasicAuthPassword)
+		req.SetBasicAuth(*this.configuration.BasicAuthUsername, *this.configuration.BasicAuthPassword)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	response, err := this.httpClient.Do(req)
