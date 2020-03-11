@@ -1,0 +1,13 @@
+nginx:
+  image: nginx:1.17.8
+  hostname: nginx
+
+  ports:
+    - "80:80"
+    - "443:443"
+  volumes:
+    - ./nginx_config/.htpasswd:/tmp/.htpasswd
+    - ./certificates/server.pem:/tmp/server.pem
+    - ./certificates/server-key.pem:/tmp/server-key.pem
+    - ./certificates/nomad-ca.pem:/tmp/nomad-ca.pem
+    - ./nginx_config/nomad.conf:/etc/nginx/conf.d/default.conf

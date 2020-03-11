@@ -1,0 +1,10 @@
+{
+  "bootstrap_expect": 1,
+  "log_level": "DEBUG",
+  "server": true,
+  "data_dir": "/tmp/nomadJobUpdate/consulData/",
+  "bind_addr": "0.0.0.0",
+  "client_addr": "0.0.0.0",
+  "advertise_addr": "127.0.0.1",
+  "ui": true
+}

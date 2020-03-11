@@ -13,3 +13,23 @@
 
 bin/
 go.sum
+
+testSetup/consul
+testSetup/nomad
+testSetup/cfssl_linux-amd64
+testSetup/cfssljson_linux-amd64
+
+testSetup/certificates/cfssl
+testSetup/certificates/cfssljson
+testSetup/certificates/cli.csr
+testSetup/certificates/cli.pem
+testSetup/certificates/cli-key.pem
+testSetup/certificates/client.csr
+testSetup/certificates/client.pem
+testSetup/certificates/client-key.pem
+testSetup/certificates/nomad-ca.csr
+testSetup/certificates/nomad-ca.pem
+testSetup/certificates/nomad-ca-key.pem
+testSetup/certificates/server.csr
+testSetup/certificates/server.pem
+testSetup/certificates/server-key.pem
