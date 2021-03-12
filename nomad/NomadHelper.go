@@ -57,7 +57,7 @@ func NewNomadHelper(configuration *Configuration) *NomadHelper {
 
 func (this *NomadHelper) ParseHclJob(bodyReader io.Reader) []byte {
 	response := this.doPostRequest(*this.configuration.Url+"/v1/jobs/parse", bodyReader)
-	if response.StatusCode == 500 {
+	if response.StatusCode != 200 {
 		defer response.Body.Close()
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
